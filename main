@@ -1,0 +1,95 @@
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.available = True
+
+class Court:
+    def __init__(self, name):
+        self.name = name
+        self.available = True
+
+import os
+
+def load_players(filename):
+    if not os.path.exists(filename):
+        return []
+    players = []
+    with open(filename, 'r') as file:
+        for line in file:
+            name, available = line.strip().split(',')
+            player = Player(name)
+            player.available = available == 'True'
+            players.append(player)
+    return players
+
+def save_players(filename, players):
+    with open(filename, 'w') as file:
+        for player in players:
+            file.write(f"{player.name},{player.available}\n")
+
+def add_courts():
+    return [Court(input("Enter court name: ")) for _ in range(int(input("Enter number of courts: ")))]
+
+from collections import deque
+
+def assign_players_to_court(players, courts):
+    available_players = [player for player in players if player.available]
+    if len(available_players) < 4:
+        return None, None
+
+    assigned_players = available_players[:4]
+    for player in assigned_players:
+        player.available = False
+
+    for court in courts:
+        if court.available:
+            court.available = False
+            return assigned_players, court
+    return None, None
+
+def release_players_and_court(players, court):
+    court.available = True
+    for player in players:
+        player.available = True
+
+def input_players():
+    return [Player(input("Enter player name: ")) for _ in range(int(input("Enter number of players: ")))]
+
+def main():
+    players_file = 'players.txt'
+    players = load_players(players_file)
+    
+    if not players:
+        players = input_players()
+    
+    courts = add_courts()
+    
+    while True:
+        action = input("Enter 'start' to start a game, 'end' to end a game, or 'exit' to quit: ").lower()
+        
+        if action == 'start':
+            assigned_players, court = assign_players_to_court(players, courts)
+            if assigned_players and court:
+                print(f"Game started on court {court.name} with players {[player.name for player in assigned_players]}")
+            else:
+                print("Not enough players or no available court.")
+        
+        elif action == 'end':
+            if 'assigned_players' in locals() and assigned_players and court:
+                release_players_and_court(assigned_players, court)
+                print(f"Game ended on court {court.name}. Players {[player.name for player in assigned_players]} are now available.")
+                assigned_players = []
+                court = None
+            else:
+                print("No game is currently running.")
+        
+        elif action == 'exit':
+            save_players(players_file, players)
+            print("Player data saved. Exiting the program.")
+            break
+        
+        else:
+            print("Invalid action. Please enter 'start', 'end', or 'exit'.")
+
+if __name__ == "__main__":
+    main()
