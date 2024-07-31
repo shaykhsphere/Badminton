@@ -1,3 +1,6 @@
+import os
+from collections import deque
+
 class Player:
     def __init__(self, name):
         self.name = name
@@ -8,18 +11,18 @@ class Court:
         self.name = name
         self.available = True
 
-import os
 
 def load_players(filename):
-    if not os.path.exists(filename):
-        return []
     players = []
-    with open(filename, 'r') as file:
-        for line in file:
-            name, available = line.strip().split(',')
-            player = Player(name)
-            player.available = available == 'True'
-            players.append(player)
+    try:
+        with open(filename, 'r') as file:
+            for line in file:
+                name, available = line.strip().split(',')
+                player = Player(name)
+                player.available = available == 'True'
+                players.append(player)
+    except FileNotFoundError:
+        print(f"{filename} not found. Starting with an empty player list.")
     return players
 
 def save_players(filename, players):
@@ -28,9 +31,12 @@ def save_players(filename, players):
             file.write(f"{player.name},{player.available}\n")
 
 def add_courts():
-    return [Court(input("Enter court name: ")) for _ in range(int(input("Enter number of courts: ")))]
-
-from collections import deque
+    num_courts = int(input("Enter number of courts: "))
+    courts = []
+    for _ in range(num_courts):
+        court_name = input("Enter court name: ")
+        courts.append(Court(court_name))
+    return courts
 
 def assign_players_to_court(players, courts):
     available_players = [player for player in players if player.available]
@@ -53,7 +59,13 @@ def release_players_and_court(players, court):
         player.available = True
 
 def input_players():
-    return [Player(input("Enter player name: ")) for _ in range(int(input("Enter number of players: ")))]
+    num_players = int(input("Enter number of players: "))
+    players = []
+    for _ in range(num_players):
+        name = input("Enter player name: ")
+        players.append(Player(name))
+        return players 
+    
 
 def main():
     players_file = 'players.txt'
